@@ -18,3 +18,5 @@ Una de las diferencias entre GraphQL y Rest Api es que GraphQL siempre tiene el 
 
 // PARTE 3
 Los enums son otra forma de crear datos en GRAPHQL
+
+// PARTE 4

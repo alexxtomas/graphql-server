@@ -23,7 +23,7 @@ const persons = [
   }
 ]
 
-// Definimos el enum YesNo y se lo añadimos al allPersons commo parametro
+// Añadimos en las Mutations el editNumber
 const typeDefinitions = gql`
   enum YesNo {
     YES
@@ -54,6 +54,7 @@ const typeDefinitions = gql`
       street: String!
       city: String!
     ): Person
+    editNumber(name: String!, phone: String!): Person
   }
 `
 
@@ -61,10 +62,8 @@ const resolvers = {
   Query: {
     personCount: () => persons.length,
     allPersons: (root, args) => {
-      // Si no recibimos parametro en la funcion simplemente retornamos todas las personas
       if (!args) return persons
-      /* Si recibimos parametro sera YES O NO debido a que esta definido con el enum si es YES retornamos los que tengan numero y si no 
-      los que no lo tengan */
+
       return persons.filter((person) => {
         return args.phone === 'YES' ? person.phone : !person.phone
       })
@@ -87,6 +86,26 @@ const resolvers = {
       persons.push(person)
 
       return person
+    },
+    // Añadimos la funcionalidad para el editNumber
+    editNumber: (root, args) => {
+      // Buscamos el indice de la persona a cambiar el numero
+      const personIndex = persons.findIndex((p) => p.name === args.name)
+
+      // Si la persona no existe retornamos null
+      if (!personIndex === -1) return null
+
+      // Extraemos los datos de la persona buscando en persons con el indice previamente definido
+      const person = persons[personIndex]
+
+      // Actualizamos el numero de la persona
+      const updatePerson = { ...person, phone: args.phone }
+
+      // Machacamos la persona anterior por la nueva con el nuevo numero de telefono
+      persons[personIndex] = updatePerson
+
+      // retornamos la persona con el numero actualizado
+      return updatePerson
     }
   },
   Person: {
