@@ -1,6 +1,4 @@
-// UserInputError para decirle al usuario que ha cometido un error
 import { gql, UserInputError, ApolloServer } from 'apollo-server'
-// Para generar la id
 import { v1 as uuid } from 'uuid'
 const persons = [
   {
@@ -25,8 +23,12 @@ const persons = [
   }
 ]
 
-// type Mutation definimos la mutacion que va añadir una persona y la va a devolver
+// Definimos el enum YesNo y se lo añadimos al allPersons commo parametro
 const typeDefinitions = gql`
+  enum YesNo {
+    YES
+    NO
+  }
   type Address {
     street: String!
     city: String!
@@ -41,7 +43,7 @@ const typeDefinitions = gql`
 
   type Query {
     personCount: Int!
-    allPersons: [Person]!
+    allPersons(phone: YesNo): [Person]!
     findPerson(name: String!): Person
   }
 
@@ -58,26 +60,30 @@ const typeDefinitions = gql`
 const resolvers = {
   Query: {
     personCount: () => persons.length,
-    allPersons: () => persons,
+    allPersons: (root, args) => {
+      // Si no recibimos parametro en la funcion simplemente retornamos todas las personas
+      if (!args) return persons
+      /* Si recibimos parametro sera YES O NO debido a que esta definido con el enum si es YES retornamos los que tengan numero y si no 
+      los que no lo tengan */
+      return persons.filter((person) => {
+        return args.phone === 'YES' ? person.phone : !person.phone
+      })
+    },
     findPerson: (root, args) => {
       const { name } = args
       return persons.find((person) => person.name === name)
     }
   },
-  // Le decimos que tiene que hacer el Mutation y cuando lo tiene que resolver
   Mutation: {
     addPerson: (root, args) => {
-      // Hacer comprobacion de que el usuario no pueda añadir dos personas con el mismo nombre
       if (persons.find((p) => p.name === args.name)) {
         throw new UserInputError('Name must be unique', {
           invalidArgs: args.name
         })
       }
 
-      // Sacamos todos los parametros pasados a addPerson que seran el name, phone, street y city. Le generamos la id llamando al uuid()
       const person = { ...args, id: uuid() }
 
-      // Añadimos la persona a la lista de personas
       persons.push(person)
 
       return person

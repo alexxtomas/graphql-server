@@ -15,3 +15,6 @@ Instalamos Apollo y GraphQl -> npm install apollo-server graphql
 // PARTE 2
 Las mutaciones en GraphQl es cuando cambias el valor de los datos
 Una de las diferencias entre GraphQL y Rest Api es que GraphQL siempre tiene el mismo endpoint y pides la informacion siempre con un post
+
+// PARTE 3
+Los enums son otra forma de crear datos en GRAPHQL
