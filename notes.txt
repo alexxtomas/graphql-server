@@ -1,3 +1,4 @@
+// PARTE 1
 GraphQL es un lenguaje de consultas.
 
 Diferencias entre Rest API y GRAPHQL -> Son cosas totalmente diferentes GRAPHQL es un lenguaje de consultas mientras que Rest API es una arquitectura
@@ -10,3 +11,7 @@ que nos da no solo la forma de crear el servidor si no tambien un cliente, tambi
 Iniciamos el proyecto con npm init -y
 
 Instalamos Apollo y GraphQl -> npm install apollo-server graphql
+
+// PARTE 2
+Las mutaciones en GraphQl es cuando cambias el valor de los datos
+Una de las diferencias entre GraphQL y Rest Api es que GraphQL siempre tiene el mismo endpoint y pides la informacion siempre con un post

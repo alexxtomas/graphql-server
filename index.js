@@ -1,5 +1,7 @@
-// Importamos GraphQL Query Language y ApolloServer
-import { gql, ApolloServer } from 'apollo-server'
+// UserInputError para decirle al usuario que ha cometido un error
+import { gql, UserInputError, ApolloServer } from 'apollo-server'
+// Para generar la id
+import { v1 as uuid } from 'uuid'
 const persons = [
   {
     name: 'Midu',
@@ -22,7 +24,8 @@ const persons = [
     id: '3d5454-3232-8788787-654645-5433453'
   }
 ]
-// Definir los datos de las personas y de las query con GraphQL con la ! indicamos que es obligatorio
+
+// type Mutation definimos la mutacion que va añadir una persona y la va a devolver
 const typeDefinitions = gql`
   type Address {
     street: String!
@@ -41,20 +44,45 @@ const typeDefinitions = gql`
     allPersons: [Person]!
     findPerson(name: String!): Person
   }
+
+  type Mutation {
+    addPerson(
+      name: String!
+      phone: String
+      street: String!
+      city: String!
+    ): Person
+  }
 `
 
-// Indicamos como se van a resolver los datos cuando se realicen las querys
 const resolvers = {
   Query: {
     personCount: () => persons.length,
     allPersons: () => persons,
-    // args son los parametros que le vamos a pasar al metodo
     findPerson: (root, args) => {
       const { name } = args
       return persons.find((person) => person.name === name)
     }
   },
-  // Root es tiene el valor previo de lo que se haya resuelto antes
+  // Le decimos que tiene que hacer el Mutation y cuando lo tiene que resolver
+  Mutation: {
+    addPerson: (root, args) => {
+      // Hacer comprobacion de que el usuario no pueda añadir dos personas con el mismo nombre
+      if (persons.find((p) => p.name === args.name)) {
+        throw new UserInputError('Name must be unique', {
+          invalidArgs: args.name
+        })
+      }
+
+      // Sacamos todos los parametros pasados a addPerson que seran el name, phone, street y city. Le generamos la id llamando al uuid()
+      const person = { ...args, id: uuid() }
+
+      // Añadimos la persona a la lista de personas
+      persons.push(person)
+
+      return person
+    }
+  },
   Person: {
     address: (root) => {
       return {
@@ -65,16 +93,11 @@ const resolvers = {
   }
 }
 
-// Crear Servidor hay que pasarle las definiciones y los resolvers
 const server = new ApolloServer({
   typeDefs: typeDefinitions,
   resolvers
 })
 
-// Iniciar servidor
-
 server.listen().then(({ url }) => {
   console.log(`Server ready at ${url}`)
 })
-
-// Ahora al incializar el servidor con node index.js nos abrira graphql playground en el link que nos da el .listen()
