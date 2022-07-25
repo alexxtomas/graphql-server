@@ -1,5 +1,8 @@
 import { gql, UserInputError, ApolloServer } from 'apollo-server'
 import { v1 as uuid } from 'uuid'
+// Importamos axios para realizar las request
+import axios from 'axios'
+
 const persons = [
   {
     name: 'Midu',
@@ -23,7 +26,6 @@ const persons = [
   }
 ]
 
-// Añadimos en las Mutations el editNumber
 const typeDefinitions = gql`
   enum YesNo {
     YES
@@ -61,10 +63,14 @@ const typeDefinitions = gql`
 const resolvers = {
   Query: {
     personCount: () => persons.length,
-    allPersons: (root, args) => {
+    // En vez de tener los datos aqui obtenemos a las personas con una request al json.server
+    allPersons: async (root, args) => {
+      const { data: personsFromRestApi } = await axios.get(
+        'http://localhost:3000/persons'
+      )
       if (!args) return persons
 
-      return persons.filter((person) => {
+      return personsFromRestApin.filter((person) => {
         return args.phone === 'YES' ? person.phone : !person.phone
       })
     },
@@ -87,24 +93,13 @@ const resolvers = {
 
       return person
     },
-    // Añadimos la funcionalidad para el editNumber
     editNumber: (root, args) => {
-      // Buscamos el indice de la persona a cambiar el numero
       const personIndex = persons.findIndex((p) => p.name === args.name)
-
-      // Si la persona no existe retornamos null
       if (!personIndex === -1) return null
-
-      // Extraemos los datos de la persona buscando en persons con el indice previamente definido
       const person = persons[personIndex]
-
-      // Actualizamos el numero de la persona
       const updatePerson = { ...person, phone: args.phone }
-
-      // Machacamos la persona anterior por la nueva con el nuevo numero de telefono
       persons[personIndex] = updatePerson
 
-      // retornamos la persona con el numero actualizado
       return updatePerson
     }
   },

@@ -19,4 +19,15 @@ Una de las diferencias entre GraphQL y Rest Api es que GraphQL siempre tiene el 
 // PARTE 3
 Los enums son otra forma de crear datos en GRAPHQL
 
-// PARTE 4
+// PARTE 5
+Se pueden hacer consultas anidadas, pero si hacemos una consulta con el mismo nombre aun que tengan diferentes parametros nos dara error
+Para ello le cambiamos el nombre ->
+                                   personsWithPhone : allPersons(phone: YES) {
+                                      name
+                                    }
+                                    personsWithoutPhone : allPersons(phone: NO) {
+                                      name
+                                    }
+Conexsion con REST API utilizamos para practicar rapidamente json-server -> npm install json-server 
+Instalamos axios para realizar las request 
+
