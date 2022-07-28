@@ -1,7 +1,5 @@
 import { gql, UserInputError, ApolloServer } from 'apollo-server'
 import { v1 as uuid } from 'uuid'
-// Importamos axios para realizar las request
-import axios from 'axios'
 
 const persons = [
   {
@@ -64,13 +62,11 @@ const resolvers = {
   Query: {
     personCount: () => persons.length,
     // En vez de tener los datos aqui obtenemos a las personas con una request al json.server
-    allPersons: async (root, args) => {
-      const { data: personsFromRestApi } = await axios.get(
-        'http://localhost:3000/persons'
-      )
-      if (!args) return persons
+    allPersons: (root, args) => {
+      const { phone } = args
+      if (!phone) return persons
 
-      return personsFromRestApin.filter((person) => {
+      return persons.filter((person) => {
         return args.phone === 'YES' ? person.phone : !person.phone
       })
     },
