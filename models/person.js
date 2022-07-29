@@ -1,7 +1,6 @@
 import mongoose from 'mongoose'
 import uniqueValidator from 'mongoose-unique-validator'
 
-// Creamos el schema de la persona
 const schema = new mongoose.Schema({
   name: {
     type: String,
@@ -25,8 +24,6 @@ const schema = new mongoose.Schema({
   }
 })
 
-// Añadimos el uniqueValidator como plugin al schema
 schema.plugin(uniqueValidator)
 
-// Creamos el modelo Person con el schema previamente definido y lo exportamos
 export default mongoose.model('Person', schema)
