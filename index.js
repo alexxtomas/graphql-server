@@ -1,11 +1,13 @@
 import { gql, ApolloServer, UserInputError } from 'apollo-server'
 import './db.js'
 import Person from './models/person.js'
-// Importamos el modelo User
 import User from './models/user.js'
+// Importamos jsonwebtoken
+import jwt from 'jsonwebtoken'
 
-/*Definimos el tipo User y Token, en queries añadimos una nueva para consultar los datos del usuario y en mutations el poder crear un 
-usuario y el poder logearse*/
+// Extraemos la contraseña para utilizar en los jsonwebtokens en este caso extraida del .env
+const { JWT_SECRET } = process.env
+
 const typeDefinitions = gql`
   enum YesNo {
     YES
@@ -94,6 +96,36 @@ const resolvers = {
         })
       }
       return person
+    },
+    // Creamos el resolver de createUser en el que creamos el usuario y lo guardamos
+    createUser: (root, args) => {
+      const user = new User({ username: args.username })
+      return user.save().catch((e) => {
+        throw new UserInputError(e.message, {
+          invalidArgs: args
+        })
+      })
+    },
+    // Creamos el resolver de login
+    login: async (root, args) => {
+      const user = await User.findOne({ username: args.username })
+      /* Para esto deberiamos guardar el password en la base de datos en un hash y desencriptarlo con bcrypt y ver si coincide pero para
+      ir mas rapido lo hacemos asi que es mas rapido */
+
+      if (!user || args.password !== 'alexpassword') {
+        throw new UserInputError('Wrong Credentials')
+      }
+
+      // Creamos el usario para token
+      const userForToken = {
+        username: user.username,
+        id: user._id
+      }
+
+      // Retornamos y creamos el token con el usarioParaToken y la palabra secreta
+      return {
+        value: jwt.sign(userForToken, JWT_SECRET)
+      }
     }
   },
   Person: {

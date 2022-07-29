@@ -10,3 +10,7 @@ Creamos el archivo db.js para conectarnos a la base de datos
 usario e inicio de sesion con tokens
 Añadimos el model user
 Y configuramos los types de graphql
+
+
+
+Para los tokens instalamos -> npm install jsonwebtoken
