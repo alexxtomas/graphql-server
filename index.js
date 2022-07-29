@@ -1,11 +1,15 @@
-import { gql, ApolloServer, UserInputError } from 'apollo-server'
+// Importamos el AuthenticationError
+import {
+  gql,
+  ApolloServer,
+  UserInputError,
+  AuthenticationError
+} from 'apollo-server'
 import './db.js'
 import Person from './models/person.js'
 import User from './models/user.js'
-// Importamos jsonwebtoken
 import jwt from 'jsonwebtoken'
 
-// Extraemos la contraseña para utilizar en los jsonwebtokens en este caso extraida del .env
 const { JWT_SECRET } = process.env
 
 const typeDefinitions = gql`
@@ -66,14 +70,24 @@ const resolvers = {
     findPerson: (root, args) => {
       const { name } = args
       return Person.findOne({ name })
+    },
+    // Como tercer parametro tenemos el valor que retorna el context
+    me: (root, args, context) => {
+      return context.currentUser
     }
   },
   Mutation: {
-    addPerson: async (root, args) => {
+    // Modificamos el addPerson para que solo los usuarios logeados puedan crear una persona
+    addPerson: async (root, args, context) => {
+      const { currentUser } = context
+      if (!currentUser) throw new AuthenticationError('Not Authenticated')
       const person = new Person({ ...args })
 
       try {
         await person.save()
+        // Añadimos a los amigos del usuario registrado la persona que ha creado
+        currentUser.friends = currentUser.friends.concat(person)
+        await currentUser.save()
       } catch (e) {
         throw new UserInputError(error.message, {
           invalidArgs: args
@@ -97,7 +111,6 @@ const resolvers = {
       }
       return person
     },
-    // Creamos el resolver de createUser en el que creamos el usuario y lo guardamos
     createUser: (root, args) => {
       const user = new User({ username: args.username })
       return user.save().catch((e) => {
@@ -106,23 +119,15 @@ const resolvers = {
         })
       })
     },
-    // Creamos el resolver de login
     login: async (root, args) => {
       const user = await User.findOne({ username: args.username })
-      /* Para esto deberiamos guardar el password en la base de datos en un hash y desencriptarlo con bcrypt y ver si coincide pero para
-      ir mas rapido lo hacemos asi que es mas rapido */
-
       if (!user || args.password !== 'alexpassword') {
         throw new UserInputError('Wrong Credentials')
       }
-
-      // Creamos el usario para token
       const userForToken = {
         username: user.username,
         id: user._id
       }
-
-      // Retornamos y creamos el token con el usarioParaToken y la palabra secreta
       return {
         value: jwt.sign(userForToken, JWT_SECRET)
       }
@@ -140,7 +145,26 @@ const resolvers = {
 
 const server = new ApolloServer({
   typeDefs: typeDefinitions,
-  resolvers
+  resolvers,
+  // Creamos el context y recibimos como parametro la request, cada vez que hagamos una request pasara por esta funcions
+  context: async ({ req }) => {
+    // En auth vamos a ver si tenemos una req guardaremos el req.headers.authorization y si no sera igual a null
+    const auth = req ? req.headers.authorization : null
+
+    // Comprobamos que auth no es null y que empieza por bearer que es como le vamos a pasar el token
+    if (auth && auth.toLocaleLowerCase().startsWith('bearer ')) {
+      // Extraemos el token que estara despues de bearer por eso el substring(7)
+      const token = auth.substring(7)
+      // Verificamos el token si es correcto tendremos el userForToken con el username y la id
+      const { id } = jwt.verify(token, JWT_SECRET)
+
+      // Buscamos el usuario en nuestra base de datos por id y le decimos que nos traiga tambien la informacion de los amigos
+      const currentUser = await User.findById(id).populate('friends')
+
+      // Retornamos el currentUser como objeto
+      return { currentUser }
+    }
+  }
 })
 
 server.listen().then(({ url }) => {

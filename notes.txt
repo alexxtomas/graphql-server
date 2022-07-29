@@ -14,3 +14,13 @@ Y configuramos los types de graphql
 
 
 Para los tokens instalamos -> npm install jsonwebtoken
+
+
+Al ApolloServer se le puede pasar un tercer parametro llamado context que recibe una funcion que tiene un objeto como parametro
+y uno de los valores mas importantes que le llega es el de la request, con esto lo que hacemos es que esta funcion se va a ejecutar cada
+vez que llegue una request al servidor.
+Esto lo que nos va a permitir es utilizar los tokens y proteger algunos resolvers para si un usuario no tiene la sesion iniciada no 
+pueda utilizarlos 
+
+
+En el playground de graphql añadimos el header Authorization con el bearer y token para poder hacer la query de me
