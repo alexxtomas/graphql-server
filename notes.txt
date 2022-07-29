@@ -6,3 +6,7 @@ instalamos el cliente de mongoDB y el unique validator que sirve para asegurarno
  Creamos la carpeta models para crear los modelos y creamos el modelo de la persona
 
 Creamos el archivo db.js para conectarnos a la base de datos
+
+usario e inicio de sesion con tokens
+Añadimos el model user
+Y configuramos los types de graphql

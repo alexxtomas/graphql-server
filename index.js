@@ -1,7 +1,11 @@
 import { gql, ApolloServer, UserInputError } from 'apollo-server'
 import './db.js'
 import Person from './models/person.js'
+// Importamos el modelo User
+import User from './models/user.js'
 
+/*Definimos el tipo User y Token, en queries añadimos una nueva para consultar los datos del usuario y en mutations el poder crear un 
+usuario y el poder logearse*/
 const typeDefinitions = gql`
   enum YesNo {
     YES
@@ -19,10 +23,21 @@ const typeDefinitions = gql`
     id: ID!
   }
 
+  type User {
+    username: String!
+    friends: [Person]!
+    id: ID!
+  }
+
+  type Token {
+    value: String!
+  }
+
   type Query {
     personCount: Int!
     allPersons(phone: YesNo): [Person]!
     findPerson(name: String!): Person
+    me: User
   }
 
   type Mutation {
@@ -33,6 +48,8 @@ const typeDefinitions = gql`
       city: String!
     ): Person
     editNumber(name: String!, phone: String!): Person
+    createUser(username: String!): User
+    login(username: String!, password: String!): Token
   }
 `
 
@@ -53,7 +70,6 @@ const resolvers = {
     addPerson: async (root, args) => {
       const person = new Person({ ...args })
 
-      // Controlamos el error que pueda suceder al guardar a la persona
       try {
         await person.save()
       } catch (e) {
@@ -66,12 +82,10 @@ const resolvers = {
     editNumber: async (root, args) => {
       const person = await Person.findOne({ name: args.name })
 
-      // Controlamos el error si no encontramos a la persona
       if (!person) return
 
       person.phone = args.phone
 
-      // Controlamos el error que pueda suceder al guardar a la persona
       try {
         await person.save()
       } catch (e) {
