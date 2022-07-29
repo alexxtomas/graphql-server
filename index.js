@@ -1,28 +1,8 @@
-import { gql, UserInputError, ApolloServer } from 'apollo-server'
-import { v1 as uuid } from 'uuid'
-
-const persons = [
-  {
-    name: 'Midu',
-    phone: '034-1234568',
-    street: 'Calle Frontend',
-    city: 'Barcelona',
-    id: '3d5454-5454354-543543-543543543-54353'
-  },
-  {
-    name: 'Youseff',
-    phone: '044-434343',
-    street: 'Avenida Fullstack',
-    city: 'Mataro',
-    id: '3d5454-4324235-232343242-23222-232233'
-  },
-  {
-    name: 'Itzi',
-    street: 'Pasaje Testing',
-    city: 'Ibiza',
-    id: '3d5454-3232-8788787-654645-5433453'
-  }
-]
+import { gql, ApolloServer } from 'apollo-server'
+// Importamos la conexion a la base de datos
+import './db.js'
+//Improtamos el modelo de la Persona
+import Person from './models/person.js'
 
 const typeDefinitions = gql`
   enum YesNo {
@@ -60,43 +40,36 @@ const typeDefinitions = gql`
 
 const resolvers = {
   Query: {
-    personCount: () => persons.length,
-    // En vez de tener los datos aqui obtenemos a las personas con una request al json.server
-    allPersons: (root, args) => {
-      const { phone } = args
-      if (!phone) return persons
+    // Hacemos que cuenta las personas que tenemos en nuestra base de datos
+    personCount: () => Person.collection.countDocuments(),
+    allPersons: async (root, args) => {
+      // Si no esta el parametro phone devolvemos todas las personas
+      if (!args) return await Person.find({})
 
-      return persons.filter((person) => {
-        return args.phone === 'YES' ? person.phone : !person.phone
-      })
+      // Si nos ha pasado el parametro phone devolvemos las personas que si tienen telefono y si ha indicado que no las que no tengan
+      return Person.find({ phone: { $exists: args.phone === 'YES' } })
     },
     findPerson: (root, args) => {
       const { name } = args
-      return persons.find((person) => person.name === name)
+      // Que solo nos encuentre el que tenga el nombre igual al name de los args
+      return Person.findOne({ name })
     }
   },
   Mutation: {
     addPerson: (root, args) => {
-      if (persons.find((p) => p.name === args.name)) {
-        throw new UserInputError('Name must be unique', {
-          invalidArgs: args.name
-        })
-      }
+      // Creamos la nueva persona
+      const person = new Person({ ...args })
 
-      const person = { ...args, id: uuid() }
-
-      persons.push(person)
-
-      return person
+      // retornamos y guardamos la nueva persona
+      return person.save()
     },
-    editNumber: (root, args) => {
-      const personIndex = persons.findIndex((p) => p.name === args.name)
-      if (!personIndex === -1) return null
-      const person = persons[personIndex]
-      const updatePerson = { ...person, phone: args.phone }
-      persons[personIndex] = updatePerson
-
-      return updatePerson
+    editNumber: async (root, args) => {
+      // Busamos la persona por el nombre
+      const person = await Person.findOne({ name: args.name })
+      // Cambiamos el numero
+      person.phone = args.phone
+      // Lo guardamos y retornamos
+      return person.save()
     }
   },
   Person: {

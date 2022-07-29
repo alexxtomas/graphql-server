@@ -1,33 +1,8 @@
-// PARTE 1
-GraphQL es un lenguaje de consultas.
+Conecta MongoDB con GraphQl
 
-Diferencias entre Rest API y GRAPHQL -> Son cosas totalmente diferentes GRAPHQL es un lenguaje de consultas mientras que Rest API es una arquitectura
-para recuperar recursos de una base de datos. De hecho GRAPHQL puede utilizar Rest API. No es una alternativa directa a Rest API con GraphQL puedes
-perfectamente pedir datos a una Rest API,
+instalamos el cliente de mongoDB y el unique validator que sirve para asegurarnos que los paquetes que añadimos a la coleccion
+ son unicos -> npm install mongoose mongoose-unique-validator -E
 
-Hay muchas formas de inicializar un proyecto con GraphQL hay muchas libererias, pero la mas famosa de todas es Apollo Server. Es una plataforma
-que nos da no solo la forma de crear el servidor si no tambien un cliente, tambien tiene un cliente para React. 
+ Creamos la carpeta models para crear los modelos y creamos el modelo de la persona
 
-Iniciamos el proyecto con npm init -y
-
-Instalamos Apollo y GraphQl -> npm install apollo-server graphql
-
-// PARTE 2
-Las mutaciones en GraphQl es cuando cambias el valor de los datos
-Una de las diferencias entre GraphQL y Rest Api es que GraphQL siempre tiene el mismo endpoint y pides la informacion siempre con un post
-
-// PARTE 3
-Los enums son otra forma de crear datos en GRAPHQL
-
-// PARTE 5
-Se pueden hacer consultas anidadas, pero si hacemos una consulta con el mismo nombre aun que tengan diferentes parametros nos dara error
-Para ello le cambiamos el nombre ->
-                                   personsWithPhone : allPersons(phone: YES) {
-                                      name
-                                    }
-                                    personsWithoutPhone : allPersons(phone: NO) {
-                                      name
-                                    }
-Conexsion con REST API utilizamos para practicar rapidamente json-server -> npm install json-server 
-Instalamos axios para realizar las request 
-
+Creamos el archivo db.js para conectarnos a la base de datos
